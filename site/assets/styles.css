@@ -163,14 +163,6 @@ main:focus, h1:focus, h2:focus { outline: none; }
 .glyph { color: var(--accent); }
 .ver { font-family: var(--police-mono); font-size: .8rem; font-weight: 400; color: var(--attenue); }
 .top-right { display: flex; align-items: center; gap: .6rem; }
-.badge {
-  margin: 0;
-  font-family: var(--police-mono); font-size: .72rem; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .08em;
-  color: var(--alerte);
-  border: 1px solid var(--alerte); border-radius: var(--rayon);
-  padding: .2rem .55rem;
-}
 .theme-toggle {
   border: 1px solid var(--filet); background: none; cursor: pointer;
   width: 2.25rem; height: 2.25rem; line-height: 1;
@@ -342,7 +334,6 @@ h2 { font-size: clamp(1.2rem, 3vw, 1.5rem); margin: 2.5rem 0 .6rem; }
 @media (max-width: 30rem) {
   .scores .bar-cell { display: none; }
   .nav .btn { flex: 1 1 auto; }
-  .badge { font-size: .65rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

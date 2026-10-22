@@ -80,7 +80,7 @@ function renderWelcome() {
       h("ul", { class: "facts" },
         h("li", {}, h("strong", {}, "56 situations"), " en trois parties"),
         h("li", {}, h("strong", {}, "18 à 25 minutes"), " environ"),
-        h("li", {}, h("strong", {}, "Instrument expérimental pré-validation"), " : les résultats sont descriptifs, non étalonnés, et ne sont pas des percentiles."),
+        h("li", {}, h("strong", {}, "Résultats descriptifs"), ", non étalonnés, qui ne sont pas des percentiles"),
       ),
       h("p", { class: "privacy" }, "Vos réponses restent dans ce navigateur sauf si vous les exportez."),
       storage ? null : h("p", { class: "warn", role: "status" },

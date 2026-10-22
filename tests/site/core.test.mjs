@@ -365,6 +365,7 @@ test("le texte copie mentionne l'absence de score CAP/INT", () => {
   const s = createSession(Q);
   answerAll(s);
   const txt = resultsText(Q, computeScores(Q, s, null));
+  assert.ok(txt.split("\n")[0].endsWith("instrument expérimental pré-validation"));
   assert.ok(txt.includes(LABELS.CAP_NONE));
   assert.ok(txt.includes(LABELS.INT_NONE));
   assert.ok(txt.includes(LABELS.ACT));

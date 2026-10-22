@@ -327,8 +327,7 @@ const fmt = (x) => (x === null ? "manquant" : `${String(x).replace(".", ",")} / 
 
 export function resultsText(q, scores) {
   const lines = [
-    `IAM V${q.version} — ${q.title}`,
-    "Instrument expérimental pré-validation.",
+    `IAM V${q.version} — ${q.title} — instrument expérimental pré-validation`,
     "Scores non étalonnés : ce ne sont pas des percentiles.",
     "",
     `${scores.ACT.label}`,
