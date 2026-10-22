@@ -1,7 +1,80 @@
 # iam
 
-Worker heberge sur le VPS multi-applications : du travail de fond, **aucune
-surface HTTP**.
+Deux choses distinctes vivent dans ce depot :
+
+- `site/` : le **questionnaire IAM V1.0** (Indice d'Activation et de Maitrise
+  des mecanismes), site 100 % statique publie par
+  GitHub Pages (voir plus bas). Il ne passe pas par le VPS.
+- `src/` : un worker heberge sur le VPS multi-applications, du travail de fond,
+  **aucune surface HTTP**. Il n'a aucun role dans le questionnaire.
+
+## Questionnaire IAM V1.0 (GitHub Pages)
+
+Instrument experimental pre-validation : 56 items, passes dans l'ordre
+CAP (Q1-Q36), INT (Q49-Q56), puis ACT (Q37-Q48). Les items
+viennent du projet de questionnaire V2.1, publie sous le nom et la version
+fixes par `IDENTITY` dans `tools/build-questionnaire.mjs`. Source :
+`specs/koh-lanta_IAM/` (questionnaire, accroche, kit et `SCORING_SPEC.md`).
+
+| fichier | role |
+|---|---|
+| `site/index.html` | page unique ; CSP stricte, aucune ressource distante |
+| `site/assets/core.js` | logique sans DOM : session, scoring, sauvegarde, export |
+| `site/assets/app.js` | affichage et navigation, delegue tout a `core.js` |
+| `site/assets/theme.js` | theme clair/sombre (cle `ldc-theme`, comme l'Atlas) |
+| `site/data/questionnaire.js` | **genere** depuis le Markdown, ne pas editer |
+| `site/data/expert_key.js` | cle experte, `null` tant qu'elle n'est pas validee |
+| `site/fonts/` | IBM Plex embarquee (licence OFL jointe) |
+| `tools/build-questionnaire.mjs` | Markdown -> `questionnaire.js` |
+| `tests/site/` | tests `node --test` |
+
+Charte (jetons, polices, bascule de theme, ancre `#test`) reprise de
+[economic-doctrine-atlas](https://github.com/s-geffroy/economic-doctrine-atlas).
+
+### Ce que le site affiche
+
+- ACT : « Activation declaree -- score descriptif », 0/25/50/75/100, `X` =
+  manquant (jamais 0), global = moyenne des valeurs disponibles, et par
+  mecanisme M1-M12.
+- CAP et INT : « non score -- cle experte requise ». Ils ne sont calcules que
+  si `expert_key.js` couvre **tous** les items du module (valeurs 0-100 pour
+  A-D, non toutes egales), selon `SCORING_SPEC.md`, avec la mention « score
+  experimental -- non etalonne ».
+- Jamais de percentile, jamais de fusion CAP + ACT.
+
+Les codes M1-M12 ne sont jamais affiches pendant la passation. L'ordre des
+items (dans chaque module) et des options est tire au demarrage puis
+sauvegarde ; l'export garde les identifiants canoniques A-D et l'ordre
+presente (`presentation`, `questionOrder`). Reglage : `CONFIG` dans `core.js`.
+
+Rien ne quitte le navigateur : `localStorage` seulement, pas de cookie, pas de
+requete (la CSP l'interdit et un test le verifie). Export JSON, CSV, copie.
+
+### Modifier le questionnaire
+
+```bash
+# apres modification de specs/koh-lanta_IAM/QUESTIONNAIRE_IAM_V2_1.md
+node tools/build-questionnaire.mjs
+node --test tests/site/
+```
+
+Previsualiser : les modules ES ne se chargent pas en `file://`, il faut un
+serveur statique quelconque servant `site/` (ou simplement pousser sur une
+branche et ouvrir la PR : le workflow teste sans publier).
+
+### Publication
+
+`.github/workflows/pages.yml` : a chaque push sur `main`, verifie que les
+donnees sont a jour, lance `node --test tests/site/`, puis publie `site/` sur
+<https://s-geffroy.github.io/indice-activation-mecanismes/>. Une version qui
+echoue aux tests n'est jamais publiee. Sur une PR, seuls les tests tournent.
+
+Activation (une seule fois) : depot GitHub -> **Settings** -> **Pages** ->
+*Build and deployment* -> *Source* : **GitHub Actions**. Puis pousser sur
+`main` (ou *Actions* -> *Pages* -> *Run workflow*). Pages gratuit exige un
+depot public (ou un plan payant pour un depot prive).
+
+## Worker
 
 ## Ou est le travail
 

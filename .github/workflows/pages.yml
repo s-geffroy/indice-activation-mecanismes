@@ -1,0 +1,54 @@
+name: Pages
+
+# Publie le questionnaire IAM sur
+# https://s-geffroy.github.io/indice-activation-mecanismes/ a chaque push sur
+# main. Les tests passent avant la publication : une version qui les echoue
+# n'est jamais publiee. Le site est 100 % statique : pas de build, on publie
+# site/ tel quel.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      # Les donnees du site doivent correspondre au Markdown du questionnaire,
+      # quand celui-ci est versionne.
+      - name: Donnees a jour
+        run: |
+          if [ -f specs/koh-lanta_IAM/QUESTIONNAIRE_IAM_V2_1.md ]; then
+            node tools/build-questionnaire.mjs --check
+          else
+            echo "source du questionnaire non versionnee : verification sautee"
+          fi
+      - run: node --test tests/site/
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
+        with: {path: site}
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+      - id: deployment
+        uses: actions/deploy-pages@v4
