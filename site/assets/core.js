@@ -16,7 +16,7 @@ export const CONFIG = {
 // les dimensions du modele. Il differe volontairement de la numerotation.
 export const MODULE_ORDER = ["CAP", "INT", "ACT"];
 
-export const STORAGE_KEY = "iam-v1.0-session";
+export const STORAGE_KEY = "iam-v2.1-session";
 
 export const ACT_POINTS = { 0: 0, 1: 25, 2: 50, 3: 75, 4: 100 };
 

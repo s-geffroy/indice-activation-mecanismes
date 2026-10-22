@@ -2,7 +2,7 @@
 // QUESTIONNAIRE_IAM_V2_1.md (voir specs/) -- ne pas editer a la main.
 export const QUESTIONNAIRE = {
   "instrument": "IAM",
-  "version": "1.0",
+  "version": "2.1",
   "title": "Indice d’Activation et de Maîtrise des mécanismes",
   "subtitle": "version expérimentale pré-validation",
   "mechanisms": {

@@ -1,4 +1,4 @@
-// Interface du questionnaire IAM V1.0. Toute decision (score, validation,
+// Interface du questionnaire IAM V2.1. Toute decision (score, validation,
 // sauvegarde, export) est deleguee a core.js ; ce fichier ne fait qu'afficher.
 import { QUESTIONNAIRE as Q } from "../data/questionnaire.js";
 import { EXPERT_KEY } from "../data/expert_key.js";

@@ -1,4 +1,4 @@
-// Cle experte IAM V1.0 -- VIDE par defaut, et elle doit le rester tant
+// Cle experte IAM V2.1 -- VIDE par defaut, et elle doit le rester tant
 // qu'aucune cle n'a ete etablie et validee par des experts.
 //
 // Sans cle, le site affiche « CAP non scoré — clé experte requise » et

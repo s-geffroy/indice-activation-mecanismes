@@ -2,18 +2,18 @@
 
 Deux choses distinctes vivent dans ce depot :
 
-- `site/` : le **questionnaire IAM V1.0** (Indice d'Activation et de Maitrise
+- `site/` : le **questionnaire IAM V2.1** (Indice d'Activation et de Maitrise
   des mecanismes), site 100 % statique publie par
   GitHub Pages (voir plus bas). Il ne passe pas par le VPS.
 - `src/` : un worker heberge sur le VPS multi-applications, du travail de fond,
   **aucune surface HTTP**. Il n'a aucun role dans le questionnaire.
 
-## Questionnaire IAM V1.0 (GitHub Pages)
+## Questionnaire IAM V2.1 (GitHub Pages)
 
 Instrument experimental pre-validation : 56 items, passes dans l'ordre
-CAP (Q1-Q36), INT (Q49-Q56), puis ACT (Q37-Q48). Les items
-viennent du projet de questionnaire V2.1, publie sous le nom et la version
-fixes par `IDENTITY` dans `tools/build-questionnaire.mjs`. Source :
+CAP (Q1-Q36), INT (Q49-Q56), puis ACT (Q37-Q48). Le nom publie
+est fixe par `IDENTITY` dans `tools/build-questionnaire.mjs`, la version y
+reste alignee sur le questionnaire source. Source :
 `specs/koh-lanta_IAM/` (questionnaire, accroche, kit et `SCORING_SPEC.md`).
 
 | fichier | role |

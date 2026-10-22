@@ -14,11 +14,11 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const SOURCE = join(root, "specs/koh-lanta_IAM/QUESTIONNAIRE_IAM_V2_1.md");
 export const TARGET = join(root, "site/data/questionnaire.js");
 
-// Identite publiee de l'instrument. Le Markdown source porte encore son nom
-// de travail (« IAM V2.1, Indice d'Activation des Mecanismes ») : c'est ici,
-// et non dans les specs, que le nom et la version publies sont fixes.
+// Identite publiee de l'instrument. La version suit celle du questionnaire
+// source (V2.1) ; le nom remplace son nom de travail (« Indice d'Activation
+// des Mecanismes »). C'est ici, et non dans les specs, qu'ils sont fixes.
 export const IDENTITY = {
-  version: "1.0",
+  version: "2.1",
   title: "Indice d’Activation et de Maîtrise des mécanismes",
   source: "QUESTIONNAIRE_IAM_V2_1.md",
 };

@@ -298,7 +298,7 @@ test("un etat corrompu ou d'une autre version est ignore", () => {
   storage.setItem(STORAGE_KEY, "{pas du json");
   assert.equal(loadState(storage, Q), null);
   const s = createSession(Q);
-  storage.setItem(STORAGE_KEY, JSON.stringify({ ...s, version: "2.1" }));
+  storage.setItem(STORAGE_KEY, JSON.stringify({ ...s, version: "2.0" }));
   assert.equal(loadState(storage, Q), null);
   const broken = structuredClone(s);
   broken.presentation.Q1 = ["A", "A", "C", "D"];
@@ -322,7 +322,7 @@ test("export JSON fidele", () => {
   s.completedAt = "2026-10-22T10:00:00.000Z";
   const exp = JSON.parse(JSON.stringify(buildExport(Q, s, EXPERT_KEY)));
   assert.equal(exp.instrument, "IAM");
-  assert.equal(exp.version, "1.0");
+  assert.equal(exp.version, "2.1");
   assert.equal(exp.title, "Indice d’Activation et de Maîtrise des mécanismes");
   assert.equal(exp.startedAt, s.startedAt);
   assert.equal(exp.completedAt, "2026-10-22T10:00:00.000Z");
