@@ -36,7 +36,7 @@ jobs:
           else
             echo "source du questionnaire non versionnee : verification sautee"
           fi
-      - run: node --test tests/site/
+      - run: node --test tests/site/*.test.mjs
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
         with: {path: site}

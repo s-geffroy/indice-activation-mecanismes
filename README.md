@@ -55,7 +55,7 @@ requete (la CSP l'interdit et un test le verifie). Export JSON, CSV, copie.
 ```bash
 # apres modification de specs/koh-lanta_IAM/QUESTIONNAIRE_IAM_V2_1.md
 node tools/build-questionnaire.mjs
-node --test tests/site/
+node --test tests/site/*.test.mjs
 ```
 
 Previsualiser : les modules ES ne se chargent pas en `file://`, il faut un
@@ -65,7 +65,7 @@ branche et ouvrir la PR : le workflow teste sans publier).
 ### Publication
 
 `.github/workflows/pages.yml` : a chaque push sur `main`, verifie que les
-donnees sont a jour, lance `node --test tests/site/`, puis publie `site/` sur
+donnees sont a jour, lance `node --test tests/site/*.test.mjs`, puis publie `site/` sur
 <https://s-geffroy.github.io/indice-activation-mecanismes/>. Une version qui
 echoue aux tests n'est jamais publiee. Sur une PR, seuls les tests tournent.
 
