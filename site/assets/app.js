@@ -9,6 +9,7 @@ import {
   answeredCount, buildCSV, buildExport, buildSteps, clearState, computeScores, createSession,
   isAnswered, isComplete, itemById, loadState, resultsText, saveState, setActValue, setChoice,
 } from "./core.js?v=2.2";
+import { barFill, download, h } from "./dom.js?v=2.2";
 
 const FORM_LABELS = { court: "forme courte", complet: "forme complète" };
 
@@ -39,18 +40,6 @@ let steps = state ? buildSteps(state) : [];
 const persist = () => storage && saveState(storage, state);
 
 // --- Petits outils DOM ----------------------------------------------------
-
-function h(tag, attrs = {}, ...children) {
-  const el = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (v === false || v === null || v === undefined) continue;
-    if (k === "class") el.className = v;
-    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
-    else el.setAttribute(k, v === true ? "" : v);
-  }
-  for (const c of children.flat()) if (c !== null && c !== undefined && c !== false) el.append(c);
-  return el;
-}
 
 // Le Markdown des consignes ne contient que du **gras** : on le traduit en
 // <strong> sans jamais passer par innerHTML.
@@ -175,12 +164,6 @@ function progress(label) {
       "aria-valuemin": 0, "aria-valuemax": total(), "aria-valuenow": done,
     }, barFill(done / total())),
   );
-}
-
-function barFill(ratio) {
-  const fill = h("span");
-  fill.style.width = `${Math.round(ratio * 100)}%`; // CSSOM : autorise par la CSP
-  return fill;
 }
 
 function navBar({ canNext, nextLabel = "Suivant", hint = "" }) {
@@ -412,15 +395,6 @@ function renderResults() {
     ),
     h("div", { class: "reset" }, resetButton()),
   );
-}
-
-function download(name, type, content) {
-  const url = URL.createObjectURL(new Blob([content], { type: `${type};charset=utf-8` }));
-  const a = h("a", { href: url, download: name });
-  document.body.append(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 async function copy(text) {

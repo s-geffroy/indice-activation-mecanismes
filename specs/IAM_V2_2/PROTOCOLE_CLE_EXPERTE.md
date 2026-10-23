@@ -44,6 +44,23 @@ Un item qui ne remplit pas ces trois critères est **exclu**. Il figure dans `ex
 - Le tableau des notes brutes (anonymisées) et le calcul des critères sont archivés avec la clé, dans le dépôt de recherche et non sur le site public.
 - La clé est versionnée : `version: "2.2"`. Toute modification d’un item invalide sa valeur K et impose de le renoter.
 
+## Outils
+
+1. **Notation** : https://s-geffroy.github.io/indice-activation-mecanismes/experts/.
+   - Chaque expert saisit son code anonyme et le tour, puis note les 70 situations (2 h à 2 h 30, en plusieurs fois si besoin, avec sauvegarde dans le navigateur).
+   - Il exporte un fichier JSON et le remet par le canal convenu.
+   - La page n’envoie rien sur le réseau et n’affiche aucun code de mécanisme.
+2. **Agrégation du tour 1** :
+   ```bash
+   node tools/expert-key.mjs --out notes-experts/resultats-tour1 notes-experts/tour1/*.json
+   ```
+   Le script produit `rapport-tour1.md` et `retour-tour1.json`. Ce dernier est remis aux experts : au tour 2, la page le charge et affiche la médiane et l’intervalle interquartile du groupe ; tout écart de plus de 25 points doit être justifié.
+3. **Agrégation du tour 2** : même commande sur les fichiers du tour 2 (`--out notes-experts/resultats-tour2 notes-experts/tour2/*.json`). Le script produit `rapport-tour2.md` et, s’il y a au moins 8 experts, `expert_key.candidate.js`.
+   - Le script ne touche jamais `site/data/expert_key.js`.
+   - La copie dans le site se fait à la main, après lecture du rapport : c’est elle qui rend CAP et INT notables.
+
+`notes-experts/` est ignoré par Git : les notes brutes ne doivent pas être publiées.
+
 ## Complément empirique (après le pilote)
 
 La clé experte peut être confrontée à une **clé de consensus**, c’est-à-dire les proportions de choix dans l’échantillon pilote. Un item où la clé experte et le consensus divergent fortement est réexaminé par les experts, sans être modifié automatiquement.

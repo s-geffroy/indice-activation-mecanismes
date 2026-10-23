@@ -31,6 +31,7 @@ depuis le texte. Sources dans `specs/IAM_V2_2/` :
 | `PROTOCOLE_CLE_EXPERTE.md` | comment etablir la cle CAP/INT |
 | `PLAN_VALIDATION.md` | pre-test, pilote, analyses |
 | `ACCROCHE_IAM_V2_2.md` | texte d'accueil |
+| `PRETEST_GUIDE.md`, `PRETEST_GRILLE.md`, `pretest_releve.csv` | pre-test cognitif : deroule, grille, tableau de releve |
 
 La V2.1 n'est plus versionnee : elle reste dans l'historique (tag `v2.1`).
 
@@ -39,11 +40,14 @@ La V2.1 n'est plus versionnee : elle reste dans l'historique (tag `v2.1`).
 | `site/index.html` | page unique ; CSP stricte, aucune ressource distante |
 | `site/assets/core.js` | logique sans DOM : session, scoring, sauvegarde, export |
 | `site/assets/app.js` | affichage et navigation, delegue tout a `core.js` |
+| `site/assets/dom.js` | petits outils DOM partages |
+| `site/experts/`, `site/assets/experts*.js` | page de notation des experts (cle CAP/INT) |
 | `site/assets/theme.js` | theme clair/sombre (cle `ldc-theme`, comme l'Atlas) |
 | `site/data/questionnaire.js` | **genere** depuis le Markdown, ne pas editer |
 | `site/data/expert_key.js` | cle experte, `null` tant qu'elle n'est pas validee |
 | `site/fonts/` | IBM Plex embarquee (licence OFL jointe) |
 | `tools/build-questionnaire.mjs` | Markdown -> `questionnaire.js` |
+| `tools/expert-key.mjs` | notes des experts -> rapport, retour du tour 1, cle candidate |
 | `tests/site/` | tests `node --test`, y compris les regles de redaction |
 
 Charte (jetons, polices, bascule de theme, ancre `#test`) reprise de
@@ -70,6 +74,19 @@ l'ordre presente (`presentation`, `questionOrder`). Reglage : `CONFIG` dans
 
 Rien ne quitte le navigateur : `localStorage` seulement, pas de cookie, pas de
 requete (la CSP l'interdit et un test le verifie). Export JSON, CSV, copie.
+
+### Notation experte
+
+Page publiee sous `…/experts/` : chaque expert note les 70 situations CAP et
+INT (0-100 par option), puis exporte un JSON. Agregation :
+
+```bash
+node tools/expert-key.mjs --out notes-experts/resultats-tour1 notes-experts/tour1/*.json
+```
+
+Deroule complet et criteres dans `specs/IAM_V2_2/PROTOCOLE_CLE_EXPERTE.md`.
+`notes-experts/` est ignore par Git ; le script ne modifie jamais
+`site/data/expert_key.js`.
 
 ### Modifier le questionnaire
 

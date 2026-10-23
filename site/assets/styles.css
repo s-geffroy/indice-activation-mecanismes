@@ -353,3 +353,20 @@ h2 { font-size: clamp(1.2rem, 3vw, 1.5rem); margin: 2.5rem 0 .6rem; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* --- Notation experte (site/experts/) --------------------------------------- */
+
+.field { display: grid; gap: .35rem; margin: 1rem 0; }
+.field label { font-family: var(--police-mono); font-size: .8rem; color: var(--attenue); }
+.text-input {
+  font: inherit; color: var(--texte-fort); background: var(--surface);
+  border: 1px solid var(--filet-vif); border-radius: var(--rayon);
+  padding: .55rem .7rem; max-width: 100%;
+}
+textarea.text-input { width: 100%; resize: vertical; }
+.k-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .9rem; }
+.k-row label { font-family: var(--police-mono); font-size: .78rem; color: var(--attenue); }
+.k-number { width: 5.5rem; }
+.k-number, .k-row input { font: inherit; }
+.k-range { flex: 1 1 10rem; min-width: 0; accent-color: var(--accent); }
+.k-group { font-family: var(--police-mono); font-size: .78rem; flex-basis: 100%; }

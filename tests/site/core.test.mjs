@@ -651,8 +651,14 @@ test("les ressources du site sont suffixees par la version du questionnaire", ()
   for (const ref of ["assets/theme.js", "assets/styles.css", "assets/app.js"]) {
     assert.ok(html.includes(`${ref}?v=${Q.version}"`), `index.html : ${ref} sans ?v=${Q.version}`);
   }
-  const app = readFileSync(join(SITE, "assets/app.js"), "utf8");
-  const imports = [...app.matchAll(/from "([^"]+)"/g)].map((m) => m[1]);
-  assert.ok(imports.length >= 3);
-  for (const spec of imports) assert.ok(spec.endsWith(`?v=${Q.version}`), `app.js importe ${spec}`);
+  const experts = readFileSync(join(SITE, "experts/index.html"), "utf8");
+  for (const ref of ["../assets/theme.js", "../assets/styles.css", "../assets/experts.js"]) {
+    assert.ok(experts.includes(`${ref}?v=${Q.version}"`), `experts/index.html : ${ref} sans ?v=${Q.version}`);
+  }
+  for (const f of ["app.js", "experts.js", "experts-core.js"]) {
+    const src = readFileSync(join(SITE, "assets", f), "utf8");
+    const imports = [...src.matchAll(/from "([^"]+)"/g)].map((m) => m[1]);
+    assert.ok(imports.length >= 1, f);
+    for (const spec of imports) assert.ok(spec.endsWith(`?v=${Q.version}`), `${f} importe ${spec}`);
+  }
 });
