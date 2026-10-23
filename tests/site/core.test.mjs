@@ -642,3 +642,17 @@ test("aucune reference a Koh-Lanta dans les fichiers versionnes", () => {
     assert.ok(!/koh.?lanta/i.test(readFileSync(path, "utf8")), f);
   }
 });
+
+// Les URL des scripts, styles et modules portent ?v=<version> : sans ce
+// suffixe, un navigateur garde en cache les modules de la version precedente
+// et affiche l'ancien questionnaire sous le nouvel en-tete.
+test("les ressources du site sont suffixees par la version du questionnaire", () => {
+  const html = readFileSync(join(SITE, "index.html"), "utf8");
+  for (const ref of ["assets/theme.js", "assets/styles.css", "assets/app.js"]) {
+    assert.ok(html.includes(`${ref}?v=${Q.version}"`), `index.html : ${ref} sans ?v=${Q.version}`);
+  }
+  const app = readFileSync(join(SITE, "assets/app.js"), "utf8");
+  const imports = [...app.matchAll(/from "([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(imports.length >= 3);
+  for (const spec of imports) assert.ok(spec.endsWith(`?v=${Q.version}`), `app.js importe ${spec}`);
+});

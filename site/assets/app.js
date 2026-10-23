@@ -1,12 +1,14 @@
 // Interface du questionnaire IAM V2.2. Toute decision (score, validation,
 // sauvegarde, export) est deleguee a core.js ; ce fichier ne fait qu'afficher.
-import { QUESTIONNAIRE as Q } from "../data/questionnaire.js";
-import { EXPERT_KEY } from "../data/expert_key.js";
+// Les imports portent ?v=<version> : sans ce suffixe, un navigateur garde en
+// cache les modules de la version precedente apres une mise a jour du site.
+import { QUESTIONNAIRE as Q } from "../data/questionnaire.js?v=2.2";
+import { EXPERT_KEY } from "../data/expert_key.js?v=2.2";
 import {
   CONFIG, LABELS, MODULE_ORDER,
   answeredCount, buildCSV, buildExport, buildSteps, clearState, computeScores, createSession,
   isAnswered, isComplete, itemById, loadState, resultsText, saveState, setActValue, setChoice,
-} from "./core.js";
+} from "./core.js?v=2.2";
 
 const FORM_LABELS = { court: "forme courte", complet: "forme complète" };
 

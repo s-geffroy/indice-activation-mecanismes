@@ -79,6 +79,10 @@ node tools/build-questionnaire.mjs
 node --test tests/site/*.test.mjs
 ```
 
+A chaque changement de version, mettre a jour le suffixe `?v=<version>` des
+URL de `site/index.html` et des imports de `site/assets/app.js` (un test le
+verifie) : sans lui, les navigateurs gardent en cache les anciens modules.
+
 Previsualiser : les modules ES ne se chargent pas en `file://`, il faut un
 serveur statique quelconque servant `site/` (ou simplement pousser sur une
 branche et ouvrir la PR : le workflow teste sans publier).
