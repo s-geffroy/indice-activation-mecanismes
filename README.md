@@ -5,8 +5,11 @@ Deux choses distinctes vivent dans ce depot :
 - `site/` : le **questionnaire IAM V2.2** (Indice d'Activation et de Maitrise
   des mecanismes), site 100 % statique publie par
   GitHub Pages (voir plus bas). Il ne passe pas par le VPS.
-- `src/` : un worker heberge sur le VPS multi-applications, du travail de fond,
-  **aucune surface HTTP**. Il n'a aucun role dans le questionnaire.
+- `src/` : deux services sur le VPS multi-applications, pour le pilote de
+  validation : `collect` (`src/collect/`), qui recoit les passations transmises
+  avec consentement, et le worker, qui applique leur duree de conservation.
+  Tous deux sont fermes (`exposure: none`, `COLLECTE_FIN` vide) tant que la
+  liste d'ouverture de `specs/IAM_V2_2/COLLECTE_RGPD.md` n'est pas cochee.
 
 ## Questionnaire IAM V2.2 (GitHub Pages)
 
@@ -32,6 +35,7 @@ depuis le texte. Sources dans `specs/IAM_V2_2/` :
 | `PLAN_VALIDATION.md` | pre-test, pilote, analyses |
 | `ACCROCHE_IAM_V2_2.md` | texte d'accueil |
 | `PRETEST_GUIDE.md`, `PRETEST_GRILLE.md`, `pretest_releve.csv` | pre-test cognitif : deroule, grille, tableau de releve |
+| `COLLECTE_RGPD.md` | collecte du pilote : architecture, RGPD, liste d'ouverture |
 
 La V2.1 n'est plus versionnee : elle reste dans l'historique (tag `v2.1`).
 
@@ -42,6 +46,8 @@ La V2.1 n'est plus versionnee : elle reste dans l'historique (tag `v2.1`).
 | `site/assets/app.js` | affichage et navigation, delegue tout a `core.js` |
 | `site/assets/dom.js` | petits outils DOM partages |
 | `site/experts/`, `site/assets/experts*.js` | page de notation des experts (cle CAP/INT) |
+| `site/assets/collect.js`, `site/data/collect.js` | transmission a l'etude, seul acces reseau du site ; `COLLECT = null` par defaut |
+| `site/confidentialite/`, `site/assets/privacy.js` | notice RGPD, consultation et effacement par code de participation |
 | `site/assets/theme.js` | theme clair/sombre (cle `ldc-theme`, comme l'Atlas) |
 | `site/data/questionnaire.js` | **genere** depuis le Markdown, ne pas editer |
 | `site/data/expert_key.js` | cle experte, `null` tant qu'elle n'est pas validee |
@@ -72,8 +78,10 @@ sauvegarde ; l'export garde la forme, les identifiants canoniques A-D et
 l'ordre presente (`presentation`, `questionOrder`). Reglage : `CONFIG` dans
 `core.js`. Entrees directes : `#test` (forme complete), `#court`.
 
-Rien ne quitte le navigateur : `localStorage` seulement, pas de cookie, pas de
-requete (la CSP l'interdit et un test le verifie). Export JSON, CSV, copie.
+Rien ne quitte le navigateur tant que la collecte n'est pas configuree :
+`localStorage` seulement, pas de cookie, `connect-src 'none'` dans la CSP (un
+test le verifie). Une fois la collecte ouverte, la personne consent avant la
+passation et transmet elle-meme a la fin. Export JSON, CSV, copie.
 
 ### Notation experte
 
@@ -94,6 +102,7 @@ Deroule complet et criteres dans `specs/IAM_V2_2/PROTOCOLE_CLE_EXPERTE.md`.
 # apres modification de specs/IAM_V2_2/QUESTIONNAIRE_IAM_V2_2.md
 node tools/build-questionnaire.mjs
 node --test tests/site/*.test.mjs
+python3 -m unittest discover -s tests/collect   # service de collecte, purge
 ```
 
 A chaque changement de version, mettre a jour le suffixe `?v=<version>` des
@@ -120,7 +129,9 @@ depot public (ou un plan payant pour un depot prive).
 
 ## Ou est le travail
 
-`src/worker.py`, fonction `cycle()`. Tout le reste est la charpente :
+`src/worker.py`, fonction `cycle()` : elle applique la duree de conservation
+des passations collectees (suppression 3 ans apres `COLLECTE_FIN`). Tout le
+reste est la charpente :
 
 | element | role |
 |---|---|

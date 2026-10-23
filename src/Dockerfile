@@ -7,7 +7,8 @@ COPY worker.py /app/worker.py
 # /state est cree ICI, et possede par 'app' : Docker initialise un volume nomme
 # vide avec le proprietaire et les droits du repertoire de l'image. Sans ca, le
 # volume arriverait en root:root et le worker ne pourrait pas y ecrire.
-RUN adduser -D -u 10001 app && mkdir -p /state && chown -R app:app /app /state
+# /data : volume iam_data, partage avec le service de collecte (meme UID).
+RUN adduser -D -u 10001 app && mkdir -p /state /data && chown -R app:app /app /state /data
 USER app
 
 # Aucun EXPOSE : ce conteneur n'ouvre rien.

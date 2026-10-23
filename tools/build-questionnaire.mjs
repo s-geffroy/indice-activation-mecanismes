@@ -13,6 +13,10 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const SOURCE = join(root, "specs/IAM_V2_2/QUESTIONNAIRE_IAM_V2_2.md");
 export const TARGET = join(root, "site/data/questionnaire.js");
+// Copie JSON pour le service de collecte, qui valide les passations recues
+// contre le meme questionnaire que le site (son contexte de build est
+// src/collect, il ne voit pas site/).
+export const COLLECT_TARGET = join(root, "src/collect/questionnaire.json");
 
 // Identite publiee de l'instrument. La version suit celle du questionnaire
 // source ; c'est ici, et non dans les specs, qu'elles sont fixees.
@@ -142,17 +146,30 @@ export function render(q) {
   );
 }
 
+export function renderJSON(q) {
+  return JSON.stringify(q, null, 2) + "\n";
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const q = parseQuestionnaire(readFileSync(SOURCE, "utf8"));
   const out = render(q);
+  const json = renderJSON(q);
   if (process.argv.includes("--check")) {
-    if (readFileSync(TARGET, "utf8") !== out) {
-      console.error("site/data/questionnaire.js n'est plus a jour : relancer tools/build-questionnaire.mjs");
+    const stale = [[TARGET, out], [COLLECT_TARGET, json]].filter(([path, content]) => {
+      try {
+        return readFileSync(path, "utf8") !== content;
+      } catch {
+        return true;
+      }
+    });
+    if (stale.length) {
+      console.error(`${stale.map(([p]) => p).join(", ")} : plus a jour, relancer tools/build-questionnaire.mjs`);
       process.exit(1);
     }
-    console.log("site/data/questionnaire.js a jour");
+    console.log("site/data/questionnaire.js et src/collect/questionnaire.json a jour");
   } else {
     writeFileSync(TARGET, out);
+    writeFileSync(COLLECT_TARGET, json);
     console.log(`ecrit ${TARGET} (${q.forms.complet.length} items ; ${q.forms.court.length} en forme courte)`);
     console.log(`duree estimee : courte ${q.estimatedMinutes.court} min, complete ${q.estimatedMinutes.complet} min`);
   }

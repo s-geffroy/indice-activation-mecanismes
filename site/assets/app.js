@@ -10,6 +10,8 @@ import {
   isAnswered, isComplete, itemById, loadState, resultsText, saveState, setActValue, setChoice,
 } from "./core.js?v=2.2";
 import { barFill, download, h } from "./dom.js?v=2.2";
+import { COLLECT } from "../data/collect.js?v=2.2";
+import { buildSubmission, collectOpen, consentRecord, retentionEnd, submitPassation } from "./collect.js?v=2.2";
 
 const FORM_LABELS = { court: "forme courte", complet: "forme complète" };
 
@@ -71,7 +73,7 @@ function formCard(form, title, details) {
       h("li", {}, h("strong", {}, form === "court" ? `${Q.estimatedMinutes.court} minutes environ` : `${Q.estimatedMinutes.complet} minutes environ`)),
       details.map((d) => h("li", {}, d)),
     ),
-    h("button", { class: `btn${form === "court" ? " primary" : ""}`, type: "button", onclick: () => start(form) },
+    h("button", { class: `btn${form === "court" ? " primary" : ""}`, type: "button", onclick: () => begin(form) },
       form === "court" ? "Commencer la forme courte" : "Commencer la forme complète"),
   );
 }
@@ -102,8 +104,56 @@ function renderWelcome() {
   );
 }
 
-function start(form) {
+// Collecte ouverte : le consentement est demande AVANT la passation, et la
+// personne peut toujours repondre sans rien transmettre.
+function begin(form) {
+  if (collectOpen(COLLECT)) renderConsent(form);
+  else start(form, null);
+}
+
+function renderConsent(form) {
+  const status = h("p", { class: "nav-status", role: "status", "aria-live": "polite" });
+  const adult = h("input", { id: "adult", type: "checkbox" });
+  const agree = h("input", { id: "agree", type: "checkbox" });
+  const accept = () => {
+    if (!adult.checked || !agree.checked) {
+      status.textContent = "Cochez les deux cases pour participer à l’étude, ou choisissez de répondre sans rien transmettre.";
+      return;
+    }
+    start(form, consentRecord(COLLECT));
+  };
+  show(
+    h("section", { class: "card", "aria-labelledby": "t" },
+      h("p", { class: "eyebrow" }, `IAM V${Q.version} — étude de validation`),
+      h("h1", { id: "t" }, "Participer à l’étude ?"),
+      h("p", {}, "Ce questionnaire est en cours de validation scientifique. Vous pouvez, si vous le souhaitez, transmettre vos réponses à l’étude : elles serviront uniquement à vérifier la qualité du questionnaire."),
+      h("ul", {},
+        h("li", {}, "Aucun nom, aucune adresse électronique, aucune adresse IP n’est enregistrée avec vos réponses."),
+        h("li", {}, "Rien n’est envoyé pendant que vous répondez : à la fin, c’est vous qui cliquez sur « Transmettre »."),
+        h("li", {}, `Vos réponses sont conservées jusqu’au ${frDate(retentionEnd(COLLECT))}, puis supprimées.`),
+        h("li", {}, "Un code de participation vous est remis : il vous permet de consulter ou d’effacer vos réponses à tout moment, ce qui retire votre consentement."),
+        h("li", {}, "Participer est facultatif ; refuser ne change rien à votre accès au questionnaire."),
+      ),
+      h("p", {}, h("a", { href: "confidentialite/" }, "Lire la notice d’information complète"), " (responsable du traitement, base légale, vos droits)."),
+      h("p", { class: "check" }, adult, h("label", { for: "adult" }, " J’ai 18 ans ou plus.")),
+      h("p", { class: "check" }, agree, h("label", { for: "agree" }, " J’ai lu la notice et j’accepte que mes réponses soient transmises à l’étude si je clique sur « Transmettre » à la fin.")),
+      h("div", { class: "actions" },
+        h("button", { class: "btn primary", type: "button", onclick: accept }, "Participer à l’étude"),
+        h("button", { class: "btn", type: "button", onclick: () => start(form, { declined: true }) }, "Répondre sans rien transmettre"),
+      ),
+      status,
+    ),
+  );
+}
+
+const frDate = (iso) => {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+};
+
+function start(form, consent) {
   state = createSession(Q, CONFIG, cryptoRandom, new Date(), form);
+  if (consent) state.consent = consent;
   steps = buildSteps(state);
   persist();
   goTo(0);
@@ -376,6 +426,8 @@ function renderResults() {
       scores.CAP && scores.INT ? null : h("p", { class: "muted" },
         "Ces parties ne peuvent pas être notées tant qu’une clé de correction n’a pas été établie et validée par des experts. Vos réponses sont conservées dans l’export pour l’être plus tard."),
 
+      transmitSection(),
+
       h("h2", {}, "Exporter"),
       h("p", { class: "privacy" }, "Vos réponses restent dans ce navigateur sauf si vous les exportez."),
       h("div", { class: "actions" },
@@ -395,6 +447,57 @@ function renderResults() {
     ),
     h("div", { class: "reset" }, resetButton()),
   );
+}
+
+// Transmission a l'etude : seulement si la personne a consenti au depart, et
+// seulement sur son clic. Le code de participation est garde dans ce
+// navigateur et affiche, pour exercer ses droits.
+function transmitSection() {
+  if (!state.consent?.accepted || !COLLECT) return null;
+  const section = h("div", {});
+  const render = () => {
+    const status = h("p", { class: "nav-status", role: "status", "aria-live": "polite" });
+    const sent = state.transmission;
+    section.replaceChildren(
+      h("h2", {}, "Transmettre à l’étude"),
+      sent
+        ? [
+            h("p", {}, "Vos réponses ont été transmises. Merci."),
+            h("p", { class: "code-box" }, "Votre code de participation : ", h("strong", {}, sent.code)),
+            h("p", {}, "Notez-le : sans lui, vos réponses ne peuvent pas être retrouvées, car aucune donnée ne vous identifie. Il permet de les consulter ou de les effacer sur la ",
+              h("a", { href: "confidentialite/" }, "page de confidentialité"), "."),
+          ]
+        : !collectOpen(COLLECT)
+          ? h("p", { class: "muted" }, "La collecte est close : vos réponses ne peuvent plus être transmises.")
+          : [
+              h("p", {}, "Vous avez accepté de participer à l’étude. Rien n’a encore été envoyé."),
+              h("div", { class: "actions" },
+                h("button", {
+                  class: "btn primary", type: "button",
+                  onclick: async (ev) => {
+                    // currentTarget est remis a null apres l'evenement : on
+                    // garde le bouton pour le reactiver en cas d'echec.
+                    const btn = ev.currentTarget;
+                    btn.disabled = true;
+                    status.textContent = "Transmission en cours…";
+                    const res = await submitPassation(COLLECT, buildSubmission(Q, state));
+                    if (res.ok) {
+                      state.transmission = { code: res.data.code, at: new Date().toISOString() };
+                      persist();
+                      render();
+                    } else {
+                      btn.disabled = false;
+                      status.textContent = res.error;
+                    }
+                  },
+                }, "Transmettre mes réponses"),
+              ),
+              status,
+            ],
+    );
+  };
+  render();
+  return section;
 }
 
 async function copy(text) {
@@ -423,5 +526,5 @@ async function copy(text) {
 // passation est en cours, qu'on propose alors de reprendre plutot que de
 // l'ecraser.
 const DIRECT = { "#test": "complet", "#court": "court" };
-if (DIRECT[window.location.hash] && !(state && Object.keys(state.responses).length)) start(DIRECT[window.location.hash]);
+if (DIRECT[window.location.hash] && !(state && Object.keys(state.responses).length)) begin(DIRECT[window.location.hash]);
 else renderWelcome();

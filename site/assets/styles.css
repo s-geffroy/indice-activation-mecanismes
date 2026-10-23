@@ -370,3 +370,16 @@ textarea.text-input { width: 100%; resize: vertical; }
 .k-number, .k-row input { font: inherit; }
 .k-range { flex: 1 1 10rem; min-width: 0; accent-color: var(--accent); }
 .k-group { font-family: var(--police-mono); font-size: .78rem; flex-basis: 100%; }
+
+/* --- Collecte : consentement et code de participation ------------------------ */
+
+.check { display: flex; gap: .6rem; align-items: flex-start; }
+.check input { margin-top: .3rem; width: 1.1rem; height: 1.1rem; accent-color: var(--accent); flex: none; }
+.code-box {
+  border: 1px solid var(--accent); border-radius: var(--rayon);
+  padding: .75rem 1rem; font-family: var(--police-mono); word-break: break-all;
+}
+.notice h2 { margin-top: 2rem; }
+.notice dt { font-weight: 600; color: var(--texte-fort); margin-top: .8rem; }
+.notice dd { margin: .2rem 0 0; }
+.fill { font-weight: 600; }

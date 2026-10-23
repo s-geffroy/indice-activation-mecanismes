@@ -615,12 +615,16 @@ function siteFiles(dir = SITE) {
   );
 }
 
-test("le site n'envoie rien sur le reseau et ne charge rien de distant", () => {
+// Seul assets/collect.js peut parler au reseau (collecte du pilote, sur clic
+// de la personne) ; aucun fichier ne charge de ressource distante.
+test("le site ne parle au reseau que par collect.js, et ne charge rien de distant", () => {
+  const network = join(SITE, "assets/collect.js");
   for (const f of siteFiles().filter((f) => /\.(js|html|css)$/.test(f))) {
     const src = readFileSync(f, "utf8");
-    for (const bad of ["fetch(", "XMLHttpRequest", "sendBeacon", "WebSocket", "document.cookie", "http://", "https://"]) {
+    for (const bad of ["XMLHttpRequest", "sendBeacon", "WebSocket", "EventSource", "document.cookie", "http://", "https://"]) {
       assert.ok(!src.includes(bad), `${f} contient ${bad}`);
     }
+    if (f !== network) assert.ok(!/\bfetch\b/.test(src), `${f} utilise fetch : passer par collect.js`);
   }
 });
 
@@ -651,11 +655,13 @@ test("les ressources du site sont suffixees par la version du questionnaire", ()
   for (const ref of ["assets/theme.js", "assets/styles.css", "assets/app.js"]) {
     assert.ok(html.includes(`${ref}?v=${Q.version}"`), `index.html : ${ref} sans ?v=${Q.version}`);
   }
-  const experts = readFileSync(join(SITE, "experts/index.html"), "utf8");
-  for (const ref of ["../assets/theme.js", "../assets/styles.css", "../assets/experts.js"]) {
-    assert.ok(experts.includes(`${ref}?v=${Q.version}"`), `experts/index.html : ${ref} sans ?v=${Q.version}`);
+  for (const [page, script] of [["experts", "experts.js"], ["confidentialite", "privacy.js"]]) {
+    const html = readFileSync(join(SITE, page, "index.html"), "utf8");
+    for (const ref of ["../assets/theme.js", "../assets/styles.css", `../assets/${script}`]) {
+      assert.ok(html.includes(`${ref}?v=${Q.version}"`), `${page}/index.html : ${ref} sans ?v=${Q.version}`);
+    }
   }
-  for (const f of ["app.js", "experts.js", "experts-core.js"]) {
+  for (const f of ["app.js", "experts.js", "experts-core.js", "collect.js", "privacy.js"]) {
     const src = readFileSync(join(SITE, "assets", f), "utf8");
     const imports = [...src.matchAll(/from "([^"]+)"/g)].map((m) => m[1]);
     assert.ok(imports.length >= 1, f);

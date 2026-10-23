@@ -37,6 +37,8 @@ jobs:
             echo "source du questionnaire non versionnee : verification sautee"
           fi
       - run: node --test tests/site/*.test.mjs
+      # Service de collecte et purge du worker (bibliotheque standard seule).
+      - run: python3 -m unittest discover -s tests/collect
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
         with: {path: site}

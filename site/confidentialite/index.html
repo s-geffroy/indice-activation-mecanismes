@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="IAM V2.2 — notice d’information sur la collecte des réponses et exercice de vos droits.">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <!-- connect-src : 'none' tant que la collecte n'est pas configuree ; sinon
+       l'origine du service, et elle seule (un test le verifie). -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+  <title>IAM V2.2 — Confidentialité</title>
+  <script src="../assets/theme.js?v=2.2"></script>
+  <link rel="preload" href="../fonts/IBMPlexSans-Regular-Latin1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../assets/styles.css?v=2.2">
+  <script type="module" src="../assets/privacy.js?v=2.2"></script>
+</head>
+<body>
+  <a class="skip" href="#app">Aller au contenu</a>
+  <header class="top">
+    <div class="wrap top-inner">
+      <p class="brand"><span class="glyph" aria-hidden="true">◆</span> IAM <span class="ver">V2.2</span></p>
+      <div class="top-right">
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Changer de thème">◐</button>
+      </div>
+    </div>
+  </header>
+  <main id="app" class="wrap" tabindex="-1">
+    <section class="card notice" aria-labelledby="t">
+      <p class="eyebrow">IAM V2.2 — confidentialité</p>
+      <h1 id="t">Vos réponses et vos droits</h1>
+
+      <!-- Texte source : specs/IAM_V2_2/COLLECTE_RGPD.md. -->
+      <div id="no-collect">
+        <p><strong>Aucune collecte n’est ouverte.</strong> Le questionnaire fonctionne entièrement dans votre navigateur : vos réponses n’en sortent que si vous les exportez vous-même.</p>
+      </div>
+
+      <div id="notice" hidden>
+        <p>Cette notice décrit la collecte des réponses au questionnaire IAM dans le cadre de son étude de validation (article 13 du règlement général sur la protection des données, RGPD).</p>
+
+        <h2>Qui est responsable ?</h2>
+        <p>Le responsable du traitement est <span class="fill" data-fill="controller"></span>, à titre personnel. Contact pour toute question ou pour exercer vos droits : <span class="fill" data-fill="contact"></span>.</p>
+
+        <h2>Pourquoi vos réponses sont-elles collectées ?</h2>
+        <p>Uniquement pour vérifier la qualité scientifique du questionnaire : compréhension des situations, fiabilité des mesures, structure, durée. Vos réponses ne servent à aucune décision vous concernant, à aucune évaluation ou sélection de personnes, ni à aucun usage commercial. Les résultats de l’étude ne sont publiés que sous forme agrégée, sans aucune réponse individuelle.</p>
+
+        <h2>Sur quelle base ?</h2>
+        <p>Votre <strong>consentement</strong> (article 6, paragraphe 1, a du RGPD). Il est demandé avant le questionnaire, et vos réponses ne partent que si vous cliquez vous-même sur « Transmettre » à la fin. Vous pouvez le retirer à tout moment, en effaçant vos réponses ci-dessous. Participer est facultatif ; refuser ne change rien à votre accès au questionnaire. L’étude est réservée aux personnes majeures.</p>
+
+        <h2>Quelles données ?</h2>
+        <dl>
+          <dt>Collectées</dt>
+          <dd>vos réponses ; la forme choisie (courte ou complète) ; l’ordre dans lequel questions et options vous ont été présentées ; l’heure de début, à la minute près, et la durée en minutes ; la date de réception ; la version de la notice acceptée ; une empreinte chiffrée de votre code de participation.</dd>
+          <dt>Jamais collectées par le service</dt>
+          <dd>nom, adresse électronique, adresse IP, informations sur votre navigateur ou votre appareil, résultats calculés (ils restent dans votre navigateur).</dd>
+        </dl>
+        <p>Aucune de ces données ne vous identifie : c’est pourquoi seul votre code de participation permet de retrouver vos réponses.</p>
+
+        <h2>Qui les reçoit, où sont-elles hébergées ?</h2>
+        <p>Seul le responsable du traitement accède aux réponses. Elles sont stockées sur un serveur hébergé par <span class="fill" data-fill="host"></span>. La page du questionnaire est servie par GitHub Pages (GitHub, Inc., États-Unis), qui peut enregistrer dans ses journaux l’adresse IP des visites, selon sa propre politique de confidentialité ; vos réponses, elles, ne transitent jamais par GitHub.</p>
+
+        <h2>Combien de temps ?</h2>
+        <p>La collecte est ouverte jusqu’au <span class="fill" data-fill="endDate"></span>. Les réponses sont conservées <strong>jusqu’au <span class="fill" data-fill="retentionEnd"></span></strong> (trois ans après la fin de la collecte, le temps de l’analyse et de la publication), puis supprimées automatiquement. Les journaux techniques du serveur, qui ne contiennent pas vos réponses, sont conservés <span class="fill" data-fill="logsRetention"></span>.</p>
+
+        <h2>Vos droits</h2>
+        <p>Vous disposez d’un droit d’accès, d’effacement, de limitation, d’opposition et de portabilité, et du droit de retirer votre consentement. Avec votre code de participation, vous les exercez directement ci-dessous : consulter (et télécharger) vos réponses, ou les effacer définitivement. Sans ce code, aucune donnée ne permet de vous retrouver (article 11 du RGPD) ; écrivez alors au contact ci-dessus en indiquant tout élément qui permettrait de le faire. Si vous estimez que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL (cnil.fr).</p>
+        <p>Aucune décision automatisée n’est prise à partir de vos réponses.</p>
+
+        <h2 id="mes-donnees">Consulter ou effacer mes réponses</h2>
+        <div id="rights"></div>
+      </div>
+
+      <p><a href="../">Retour au questionnaire</a></p>
+    </section>
+  </main>
+  <footer class="wrap foot">
+    <p>Polices IBM Plex, licence <a href="../fonts/OFL.txt">SIL Open Font License 1.1</a>.</p>
+  </footer>
+</body>
+</html>

@@ -1,6 +1,10 @@
-# Un worker : du travail de fond, aucune surface HTTP. Donc pas de labels
-# Traefik, pas de reseau edge, et 'exposure: none' dans app.yaml -- appctl
-# refuse l'un sans l'autre.
+# Deux services :
+# - worker : travail de fond (conservation des passations), aucune surface HTTP ;
+# - collect : service de collecte du pilote (specs/IAM_V2_2/COLLECTE_RGPD.md).
+#   Tant qu'il est en 'exposure: none' dans app.yaml, personne ne le joint.
+#   L'ouverture publique passe par app-exposure.py, qui pose ensemble
+#   app.yaml et les labels Traefik -- jamais de labels a la main.
+# Les deux partagent le volume iam_data (base SQLite des passations).
 services:
   worker:
     build:
@@ -12,8 +16,10 @@ services:
       APP_NAME: iam
       TZ: Europe/Paris
       WORKER_INTERVAL: "30"
+      COLLECTE_FIN: ${COLLECTE_FIN:-}
     volumes:
       - state:/state
+      - data:/data
     deploy:
       resources:
         limits:
@@ -35,6 +41,39 @@ services:
     # cycle en cours : si un cycle peut durer plus longtemps, augmenter ici.
     stop_grace_period: 30s
 
+  collect:
+    build:
+      context: ./src/collect
+    restart: unless-stopped
+    networks:
+      - internal
+    environment:
+      TZ: Europe/Paris
+      COLLECT_PORT: "8080"
+      COLLECT_ORIGIN: https://s-geffroy.github.io
+      # Dernier jour de collecte (AAAA-MM-JJ). Vide : collecte fermee.
+      COLLECTE_FIN: ${COLLECTE_FIN:-}
+      # Version de la notice et du consentement ; a changer avec leur texte.
+      CONSENT_VERSION: "1"
+    volumes:
+      - data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
+          pids: 64
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    stop_grace_period: 10s
+
 networks:
   internal:
     name: iam-internal
@@ -43,3 +82,5 @@ networks:
 volumes:
   state:
     name: iam_state
+  data:
+    name: iam_data

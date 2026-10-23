@@ -8,3 +8,8 @@ name: iam
 services:
   worker:
     exposure: none
+  # Service de collecte : ferme tant que l'exposition publique n'est pas
+  # decidee. L'ouvrir avec app-exposure.py (voir COLLECTE_RGPD.md), jamais
+  # en editant ce fichier ou les labels a la main.
+  collect:
+    exposure: none
