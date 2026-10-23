@@ -2,19 +2,37 @@
 
 Deux choses distinctes vivent dans ce depot :
 
-- `site/` : le **questionnaire IAM V2.1** (Indice d'Activation et de Maitrise
+- `site/` : le **questionnaire IAM V2.2** (Indice d'Activation et de Maitrise
   des mecanismes), site 100 % statique publie par
   GitHub Pages (voir plus bas). Il ne passe pas par le VPS.
 - `src/` : un worker heberge sur le VPS multi-applications, du travail de fond,
   **aucune surface HTTP**. Il n'a aucun role dans le questionnaire.
 
-## Questionnaire IAM V2.1 (GitHub Pages)
+## Questionnaire IAM V2.2 (GitHub Pages)
 
-Instrument experimental pre-validation : 56 items, passes dans l'ordre
-CAP (Q1-Q36), INT (Q49-Q56), puis ACT (Q37-Q48). Le nom publie
-est fixe par `IDENTITY` dans `tools/build-questionnaire.mjs`, la version y
-reste alignee sur le questionnaire source. Source :
-`specs/koh-lanta_IAM/` (questionnaire, accroche, kit et `SCORING_SPEC.md`).
+Instrument experimental pre-validation, strictement professionnel, en deux
+formes choisies a l'accueil :
+
+| forme | items | duree estimee | resultats |
+|---|---|---|---|
+| courte | 28 (ACT 12 + 1 controle, CAP 12, INT 3) | ~14 min | globaux |
+| complete | 108 (ACT 36 + 2 controles, CAP 60, INT 10) | ~57 min | globaux et par mecanisme |
+
+La courte est un sous-ensemble de la complete (items marques `[court]`).
+Ordre de passation : ACT, CAP, puis INT. Le nom publie et la version sont fixes
+par `IDENTITY` dans `tools/build-questionnaire.mjs` ; les durees sont calculees
+depuis le texte. Sources dans `specs/IAM_V2_2/` :
+
+| fichier | role |
+|---|---|
+| `QUESTIONNAIRE_IAM_V2_2.md` | items des deux formes, source unique du site |
+| `CADRE_IAM_V2_2.md` | ce qui est mesure, dimensions, regles de redaction, correspondance V2.1 |
+| `SCORING_SPEC_V2_2.md` | regles de scoring appliquees par `core.js` |
+| `PROTOCOLE_CLE_EXPERTE.md` | comment etablir la cle CAP/INT |
+| `PLAN_VALIDATION.md` | pre-test, pilote, analyses |
+| `ACCROCHE_IAM_V2_2.md` | texte d'accueil |
+
+La V2.1 n'est plus versionnee : elle reste dans l'historique (tag `v2.1`).
 
 | fichier | role |
 |---|---|
@@ -26,26 +44,29 @@ reste alignee sur le questionnaire source. Source :
 | `site/data/expert_key.js` | cle experte, `null` tant qu'elle n'est pas validee |
 | `site/fonts/` | IBM Plex embarquee (licence OFL jointe) |
 | `tools/build-questionnaire.mjs` | Markdown -> `questionnaire.js` |
-| `tests/site/` | tests `node --test` |
+| `tests/site/` | tests `node --test`, y compris les regles de redaction |
 
 Charte (jetons, polices, bascule de theme, ancre `#test`) reprise de
 [economic-doctrine-atlas](https://github.com/s-geffroy/economic-doctrine-atlas).
 
 ### Ce que le site affiche
 
-- ACT : « Activation declaree -- score descriptif », 0/25/50/75/100, `X` =
-  manquant (jamais 0), global = moyenne des valeurs disponibles, et par
-  mecanisme M1-M12.
+- ACT : « Activation declaree -- score descriptif », 0/25/50/75/100, items
+  inverses retournes, `X` = manquant (jamais 0). Global seulement si au moins
+  2/3 des items ont une reponse ; par mecanisme (forme complete) si 2 sur 3.
+- Controles d'attention : exportes, jamais scores.
 - CAP et INT : « non score -- cle experte requise ». Ils ne sont calcules que
-  si `expert_key.js` couvre **tous** les items du module (valeurs 0-100 pour
-  A-D, non toutes egales), selon `SCORING_SPEC.md`, avec la mention « score
+  si `expert_key.js` porte la version 2.2 et couvre tous les items non exclus
+  de la forme, selon `SCORING_SPEC_V2_2.md`, avec la mention « score
   experimental -- non etalonne ».
+- Forme courte : scores globaux seulement.
 - Jamais de percentile, jamais de fusion CAP + ACT.
 
 Les codes M1-M12 ne sont jamais affiches pendant la passation. L'ordre des
 items (dans chaque module) et des options est tire au demarrage puis
-sauvegarde ; l'export garde les identifiants canoniques A-D et l'ordre
-presente (`presentation`, `questionOrder`). Reglage : `CONFIG` dans `core.js`.
+sauvegarde ; l'export garde la forme, les identifiants canoniques A-D et
+l'ordre presente (`presentation`, `questionOrder`). Reglage : `CONFIG` dans
+`core.js`. Entrees directes : `#test` (forme complete), `#court`.
 
 Rien ne quitte le navigateur : `localStorage` seulement, pas de cookie, pas de
 requete (la CSP l'interdit et un test le verifie). Export JSON, CSV, copie.
@@ -53,7 +74,7 @@ requete (la CSP l'interdit et un test le verifie). Export JSON, CSV, copie.
 ### Modifier le questionnaire
 
 ```bash
-# apres modification de specs/koh-lanta_IAM/QUESTIONNAIRE_IAM_V2_1.md
+# apres modification de specs/IAM_V2_2/QUESTIONNAIRE_IAM_V2_2.md
 node tools/build-questionnaire.mjs
 node --test tests/site/*.test.mjs
 ```

@@ -31,7 +31,7 @@ jobs:
       # quand celui-ci est versionne.
       - name: Donnees a jour
         run: |
-          if [ -f specs/koh-lanta_IAM/QUESTIONNAIRE_IAM_V2_1.md ]; then
+          if [ -f specs/IAM_V2_2/QUESTIONNAIRE_IAM_V2_2.md ]; then
             node tools/build-questionnaire.mjs --check
           else
             echo "source du questionnaire non versionnee : verification sautee"

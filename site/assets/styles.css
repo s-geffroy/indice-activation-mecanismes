@@ -214,6 +214,20 @@ h2 { font-size: clamp(1.2rem, 3vw, 1.5rem); margin: 2.5rem 0 .6rem; }
 }
 .facts strong { color: var(--texte-fort); font-weight: 600; }
 
+/* Choix de la forme : deux cartes cote a cote, empilees sur ecran etroit. */
+.form-cards {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem;
+  margin: 1.75rem 0 0; padding: 0; list-style: none;
+}
+.form-card {
+  border: 1px solid var(--filet); border-radius: var(--rayon); background: var(--surface);
+  padding: clamp(1rem, 3vw, 1.5rem);
+  display: flex; flex-direction: column;
+}
+.form-card h2 { margin: 0; font-size: 1.2rem; }
+.form-card .facts { margin: 1rem 0 1.25rem; flex: 1; align-content: flex-start; }
+.form-card .btn { align-self: flex-start; }
+
 .privacy { border-left: 2px solid var(--accent); padding-left: .8rem; }
 .warn {
   border: 1px solid var(--alerte); background: var(--alerte-doux);

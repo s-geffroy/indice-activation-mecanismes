@@ -11,21 +11,29 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-export const SOURCE = join(root, "specs/koh-lanta_IAM/QUESTIONNAIRE_IAM_V2_1.md");
+export const SOURCE = join(root, "specs/IAM_V2_2/QUESTIONNAIRE_IAM_V2_2.md");
 export const TARGET = join(root, "site/data/questionnaire.js");
 
 // Identite publiee de l'instrument. La version suit celle du questionnaire
-// source (V2.1) ; le nom remplace son nom de travail (« Indice d'Activation
-// des Mecanismes »). C'est ici, et non dans les specs, qu'ils sont fixes.
+// source ; c'est ici, et non dans les specs, qu'elles sont fixees.
 export const IDENTITY = {
-  version: "2.1",
+  version: "2.2",
   title: "Indice d’Activation et de Maîtrise des mécanismes",
-  source: "QUESTIONNAIRE_IAM_V2_1.md",
+  source: "QUESTIONNAIRE_IAM_V2_2.md",
 };
+
+// Duree estimee : lecture a 200 mots/min, plus 8 s par choix (deux pour une
+// situation PLUS/MOINS efficace, un pour une ligne ACT).
+export const WORDS_PER_MINUTE = 200;
+export const SECONDS_PER_CHOICE = 8;
+
+// En-tete d'item : "### C07 — M3 [court]", "### I03 — M5+M8+M12",
+// "### A14 — M5 (inversé)", "### V1 — contrôle [court] = 3".
+const ITEM_HEADER = /^### ([CIAV]\d+) — (M\d+(?:\+M\d+)*|contrôle)( \(inversé\))?( \[court\])?(?: = ([0-4]))?$/;
 
 export function parseQuestionnaire(md) {
   const lines = md.replace(/\r\n/g, "\n").split("\n").map((l) => l.replace(/\s+$/, ""));
-  const q = { instrument: "IAM", version: "2.1", title: "", subtitle: "", mechanisms: {}, modules: {}, items: [] };
+  const q = { instrument: "IAM", version: "", title: "", subtitle: "", mechanisms: {}, modules: {}, items: [] };
   let module = null;
   let section = null; // "dimensions" | "consigne" | "item" | "scoring"
   let item = null;
@@ -55,9 +63,20 @@ export function parseQuestionnaire(md) {
     }
     if (line.startsWith("# Note de scoring")) { flushItem(); module = null; section = "scoring"; continue; }
     if (line === "## Consigne") { section = "consigne"; continue; }
-    if ((m = line.match(/^### (Q\d+)(?: — (M\d+))?$/))) {
+    if (line.startsWith("### ")) {
       flushItem();
-      item = { id: m[1], module, mechanism: m[2] || null, text: [], options: [] };
+      if (!(m = line.match(ITEM_HEADER))) throw new Error(`en-tete d'item illisible : ${line}`);
+      const [, id, tag, reversed, short, expected] = m;
+      const mechs = tag === "contrôle" ? [] : tag.split("+");
+      item = {
+        id, module,
+        mechanism: module === "INT" || !mechs.length ? null : mechs[0],
+        ...(module === "INT" ? { mechanisms: mechs } : {}),
+        ...(module === "ACT" ? { reversed: Boolean(reversed) } : {}),
+        ...(tag === "contrôle" ? { check: Number(expected) } : {}),
+        short: Boolean(short),
+        text: [], options: [],
+      };
       section = "item";
       continue;
     }
@@ -78,7 +97,26 @@ export function parseQuestionnaire(md) {
   }
   flushItem();
   for (const mod of Object.values(q.modules)) mod.consigne = joinParagraphs(mod.consigne);
+  q.forms = {
+    court: q.items.filter((i) => i.short).map((i) => i.id),
+    complet: q.items.map((i) => i.id),
+  };
+  q.estimatedMinutes = Object.fromEntries(
+    Object.entries(q.forms).map(([form, ids]) => [form, estimateMinutes(q.items.filter((i) => ids.includes(i.id)))]),
+  );
   return { ...q, ...IDENTITY };
+}
+
+export function wordCount(s) {
+  return s.split(/\s+/).filter((w) => /\p{L}|\d/u.test(w)).length;
+}
+
+export function estimateMinutes(items) {
+  const seconds = items.reduce((total, i) => {
+    const words = wordCount([...i.text, ...i.options.map((o) => o.text)].join(" "));
+    return total + (60 * words) / WORDS_PER_MINUTE + SECONDS_PER_CHOICE * (i.options.length ? 2 : 1);
+  }, 0);
+  return Math.ceil(seconds / 60);
 }
 
 // Lignes -> paragraphes (une ligne vide separe deux paragraphes ; les listes
@@ -99,13 +137,14 @@ function joinParagraphs(lines) {
 export function render(q) {
   return (
     "// GENERE par tools/build-questionnaire.mjs depuis\n" +
-    "// QUESTIONNAIRE_IAM_V2_1.md (voir specs/) -- ne pas editer a la main.\n" +
+    `// ${IDENTITY.source} (voir specs/) -- ne pas editer a la main.\n` +
     `export const QUESTIONNAIRE = ${JSON.stringify(q, null, 2)};\n`
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const out = render(parseQuestionnaire(readFileSync(SOURCE, "utf8")));
+  const q = parseQuestionnaire(readFileSync(SOURCE, "utf8"));
+  const out = render(q);
   if (process.argv.includes("--check")) {
     if (readFileSync(TARGET, "utf8") !== out) {
       console.error("site/data/questionnaire.js n'est plus a jour : relancer tools/build-questionnaire.mjs");
@@ -114,6 +153,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.log("site/data/questionnaire.js a jour");
   } else {
     writeFileSync(TARGET, out);
-    console.log(`ecrit ${TARGET}`);
+    console.log(`ecrit ${TARGET} (${q.forms.complet.length} items ; ${q.forms.court.length} en forme courte)`);
+    console.log(`duree estimee : courte ${q.estimatedMinutes.court} min, complete ${q.estimatedMinutes.complet} min`);
   }
 }

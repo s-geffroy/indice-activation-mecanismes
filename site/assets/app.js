@@ -1,12 +1,14 @@
-// Interface du questionnaire IAM V2.1. Toute decision (score, validation,
+// Interface du questionnaire IAM V2.2. Toute decision (score, validation,
 // sauvegarde, export) est deleguee a core.js ; ce fichier ne fait qu'afficher.
 import { QUESTIONNAIRE as Q } from "../data/questionnaire.js";
 import { EXPERT_KEY } from "../data/expert_key.js";
 import {
   CONFIG, LABELS, MODULE_ORDER,
-  buildCSV, buildExport, buildSteps, clearState, computeScores, createSession,
+  answeredCount, buildCSV, buildExport, buildSteps, clearState, computeScores, createSession,
   isAnswered, isComplete, itemById, loadState, resultsText, saveState, setActValue, setChoice,
 } from "./core.js";
+
+const FORM_LABELS = { court: "forme courte", complet: "forme complète" };
 
 const MODULE_TITLES = {
   CAP: "Situations",
@@ -17,7 +19,7 @@ const MODULE_TITLES = {
 const ITEM_HINT = {
   CAP: "Choisissez l’action la PLUS efficace et l’action la MOINS efficace.",
   INT: "Choisissez l’action la PLUS efficace et l’action la MOINS efficace.",
-  ACT: "Sur les six derniers mois, lorsque vous avez rencontré une situation comparable.",
+  ACT: "Sur les six derniers mois, lorsque la situation s’est présentée.",
 };
 
 const app = document.getElementById("app");
@@ -68,37 +70,49 @@ const fmt = (x) => (x === null ? "—" : String(Math.round(x)));
 
 // --- Accueil ---------------------------------------------------------------
 
+// Le texte d'accueil reprend specs/IAM_V2_2/ACCROCHE_IAM_V2_2.md ; les
+// effectifs et les durees viennent des donnees, jamais d'un chiffre en dur.
+function formCard(form, title, details) {
+  return h("li", { class: "form-card" },
+    h("h2", {}, title),
+    h("ul", { class: "facts" },
+      h("li", {}, h("strong", {}, `${Q.forms[form].length} questions`)),
+      h("li", {}, h("strong", {}, form === "court" ? `${Q.estimatedMinutes.court} minutes environ` : `${Q.estimatedMinutes.complet} minutes environ`)),
+      details.map((d) => h("li", {}, d)),
+    ),
+    h("button", { class: `btn${form === "court" ? " primary" : ""}`, type: "button", onclick: () => start(form) },
+      form === "court" ? "Commencer la forme courte" : "Commencer la forme complète"),
+  );
+}
+
 function renderWelcome() {
   const resumable = state && Object.keys(state.responses).length > 0;
   show(
     h("section", { class: "card welcome", "aria-labelledby": "t" },
       h("p", { class: "eyebrow" }, `IAM V${Q.version} — ${Q.title}`),
-      h("h1", { id: "t" }, "Jusqu’où savez-vous vraiment lire une situation, choisir le bon moment et faire les bons arbitrages ?"),
-      h("p", {}, "Ce questionnaire ne cherche pas à savoir si vous êtes « stratège », « leader » ou « bon avec les autres »."),
-      h("p", {}, "Il vous place face à des situations où plusieurs choix peuvent sembler raisonnables — mais où chacun produit des conséquences différentes sur la confiance, l’influence, les alliances, l’information, la réputation ou le timing."),
-      h("p", {}, "Il n’y a pas de profil idéal, ni de personnage à incarner. Seulement vos décisions."),
-      h("ul", { class: "facts" },
-        h("li", {}, h("strong", {}, "56 situations"), " en trois parties"),
-        h("li", {}, h("strong", {}, "18 à 25 minutes"), " environ"),
-        h("li", {}, h("strong", {}, "Résultats descriptifs"), ", non étalonnés, qui ne sont pas des percentiles"),
-      ),
+      h("h1", { id: "t" }, "Comment jugez-vous les situations de travail où plusieurs choix se défendent ?"),
+      h("p", {}, "Ce questionnaire vous place face à des situations professionnelles où plusieurs actions peuvent sembler raisonnables, mais où chacune a des effets différents sur la confiance, l’influence, les soutiens, l’information, la réputation ou le choix du moment."),
+      h("p", {}, "Il porte sur deux choses distinctes : votre jugement sur ces situations, et la fréquence de certains de vos comportements au travail, telle que vous la déclarez. Ce n’est ni un test de personnalité ni une évaluation de votre valeur professionnelle."),
+      h("p", { class: "muted" }, "Instrument expérimental, en cours de validation : les résultats sont descriptifs, non étalonnés, et ne sont pas des percentiles."),
       h("p", { class: "privacy" }, "Vos réponses restent dans ce navigateur sauf si vous les exportez."),
       storage ? null : h("p", { class: "warn", role: "status" },
         "La sauvegarde locale est indisponible dans ce navigateur : vos réponses seront perdues si vous rechargez la page."),
-      h("div", { class: "actions" },
-        resumable
-          ? [
-              h("button", { class: "btn primary", type: "button", onclick: () => goTo(state.cursor) }, "Reprendre là où je m’étais arrêté·e"),
-              resetButton("Effacer mes réponses / Recommencer"),
-            ]
-          : h("button", { class: "btn primary", type: "button", onclick: start }, "Commencer"),
-      ),
+      resumable
+        ? h("div", { class: "actions" },
+            h("button", { class: "btn primary", type: "button", onclick: () => goTo(state.cursor) },
+              `Reprendre la ${FORM_LABELS[state.form]} là où je m’étais arrêté·e`),
+            resetButton("Effacer mes réponses / Recommencer"),
+          )
+        : h("ul", { class: "form-cards" },
+            formCard("court", "Forme courte", ["Résultats globaux", "Pour une première passation"]),
+            formCard("complet", "Forme complète", ["Résultats par mécanisme", "Reprise possible en plusieurs fois"]),
+          ),
     ),
   );
 }
 
-function start() {
-  state = createSession(Q, CONFIG, cryptoRandom);
+function start(form) {
+  state = createSession(Q, CONFIG, cryptoRandom, new Date(), form);
   steps = buildSteps(state);
   persist();
   goTo(0);
@@ -148,14 +162,16 @@ function itemPosition(id) {
   return MODULE_ORDER.flatMap((m) => state.questionOrder[m]).indexOf(id) + 1;
 }
 
+const total = () => Q.forms[state.form].length;
+
 function progress(label) {
-  const done = Q.items.filter((i) => isAnswered(i, state.responses[i.id])).length;
+  const done = answeredCount(Q, state);
   return h("div", { class: "progress" },
-    h("p", { class: "progress-label" }, label, h("span", {}, ` · ${done} réponse${done > 1 ? "s" : ""} sur ${Q.items.length}`)),
+    h("p", { class: "progress-label" }, label, h("span", {}, ` · ${done} réponse${done > 1 ? "s" : ""} sur ${total()}`)),
     h("div", {
       class: "progress-bar", role: "progressbar", "aria-label": "Progression",
-      "aria-valuemin": 0, "aria-valuemax": Q.items.length, "aria-valuenow": done,
-    }, barFill(done / Q.items.length)),
+      "aria-valuemin": 0, "aria-valuemax": total(), "aria-valuenow": done,
+    }, barFill(done / total())),
   );
 }
 
@@ -216,11 +232,11 @@ function renderItem(item) {
   const hint = item.module === "ACT"
     ? "Choisissez une réponse pour continuer."
     : "Choisissez une action PLUS efficace et une action MOINS efficace (différentes) pour continuer.";
-  const nav = navBar({ canNext: isAnswered(item, state.responses[item.id]), hint, nextLabel: pos === Q.items.length ? "Voir mes résultats" : "Suivant" });
+  const nav = navBar({ canNext: isAnswered(item, state.responses[item.id]), hint, nextLabel: pos === total() ? "Voir mes résultats" : "Suivant" });
   // Le code de mecanisme (M1-M12) n'est jamais affiche pendant la passation.
   const body = item.module === "ACT" ? actBody(item, nav) : choiceBody(item, nav);
   show(
-    progress(`Question ${pos} sur ${Q.items.length}`),
+    progress(`Question ${pos} sur ${total()}`),
     h("section", { class: "card", "aria-labelledby": "t" },
       h("p", { class: "eyebrow" }, `Partie ${n} — ${MODULE_TITLES[item.module]}`),
       h("h1", { id: "t", class: "sr-only" }, `Question ${pos}`),
@@ -331,33 +347,40 @@ function notScored(label) {
 function renderResults() {
   const scores = computeScores(Q, state, EXPERT_KEY);
   const mechs = Object.entries(Q.mechanisms);
-  const exportJSON = () => download(`iam-v${Q.version}-reponses.json`, "application/json", JSON.stringify(buildExport(Q, state, EXPERT_KEY), null, 2) + "\n");
-  const exportCSV = () => download(`iam-v${Q.version}-reponses.csv`, "text/csv", buildCSV(Q, state));
+  const base = `iam-v${Q.version}-${state.form}-reponses`;
+  const exportJSON = () => download(`${base}.json`, "application/json", JSON.stringify(buildExport(Q, state, EXPERT_KEY), null, 2) + "\n");
+  const exportCSV = () => download(`${base}.csv`, "text/csv", buildCSV(Q, state));
   const copyStatus = h("p", { class: "nav-status", role: "status", "aria-live": "polite" });
 
   show(
     h("section", { class: "card", "aria-labelledby": "t" },
-      h("p", { class: "eyebrow" }, `IAM V${Q.version} — résultats`),
+      h("p", { class: "eyebrow" }, `IAM V${Q.version} — résultats, ${FORM_LABELS[state.form]}`),
       h("h1", { id: "t" }, "Vos résultats"),
       h("p", { class: "warn" },
         h("strong", {}, "Instrument expérimental pré-validation. "),
         "Les scores ci-dessous sont descriptifs et non étalonnés : ce ne sont pas des percentiles, ils ne vous comparent à personne. Les trois parties sont présentées séparément et ne sont jamais additionnées."),
 
       h("h2", {}, LABELS.ACT),
-      h("p", {}, "Moyenne de vos réponses disponibles (Jamais = 0, Rarement = 25, Parfois = 50, Souvent = 75, Presque toujours = 100). Une réponse « Pas assez de situations comparables » est traitée comme manquante, jamais comme 0."),
+      h("p", {}, "Moyenne de vos réponses disponibles (Jamais = 0, Rarement = 25, Parfois = 50, Souvent = 75, Presque toujours = 100). Certaines lignes décrivent un comportement à éviter : leur échelle est retournée. Une réponse « Situation non rencontrée » est traitée comme manquante, jamais comme 0."),
       h("p", { class: "big" },
         "ACT global : ",
-        h("strong", {}, scores.ACT.global === null ? "non calculable" : `${fmt(scores.ACT.global)} / 100`),
-        h("span", { class: "muted" }, ` (${scores.ACT.available} réponse${scores.ACT.available > 1 ? "s" : ""} disponible${scores.ACT.available > 1 ? "s" : ""} sur ${scores.ACT.total})`),
+        h("strong", {}, scores.ACT.global === null ? LABELS.ACT_TOO_FEW : `${fmt(scores.ACT.global)} / 100`),
+        h("span", { class: "muted" }, ` (${scores.ACT.available} réponse${scores.ACT.available > 1 ? "s" : ""} disponible${scores.ACT.available > 1 ? "s" : ""} sur ${scores.ACT.total}, ${scores.ACT.minimum} au minimum)`),
       ),
-      scoreTable("Activation déclarée par mécanisme", mechs.map(([m, name]) => scoreRow(`${m} — ${name}`, scores.ACT.byMechanism[m], "(pas assez de situations)"))),
-      h("p", { class: "muted" }, "M11 décrit ce que vous déclarez faire ; il ne mesure pas votre résistance réelle à la pression."),
+      scores.ACT.byMechanism
+        ? [
+            scoreTable("Activation déclarée par mécanisme", mechs.map(([m, name]) => scoreRow(`${m} — ${name}`, scores.ACT.byMechanism[m], "(pas assez de situations)"))),
+            h("p", { class: "muted" }, "M11 décrit ce que vous déclarez faire ; il ne mesure pas votre résistance réelle à la pression."),
+          ]
+        : h("p", { class: "muted" }, "La forme courte ne compte qu’une ligne par mécanisme : elle ne donne pas de résultat par mécanisme."),
 
       h("h2", {}, "Jugement sur les situations (CAP)"),
       scores.CAP
         ? [
             h("p", { class: "big" }, "CAP global : ", h("strong", {}, `${fmt(scores.CAP.global)} / 100`), h("span", { class: "muted" }, ` — ${LABELS.EXPERIMENTAL}`)),
-            scoreTable(`CAP par mécanisme — ${LABELS.EXPERIMENTAL}`, mechs.map(([m, name]) => scoreRow(`${m} — ${name}`, scores.CAP.byMechanism[m]))),
+            scores.CAP.byMechanism
+              ? scoreTable(`CAP par mécanisme — ${LABELS.EXPERIMENTAL}`, mechs.map(([m, name]) => scoreRow(`${m} — ${name}`, scores.CAP.byMechanism[m])))
+              : null,
           ]
         : notScored(LABELS.CAP_NONE),
 
@@ -376,7 +399,7 @@ function renderResults() {
         h("button", {
           class: "btn", type: "button",
           onclick: async () => {
-            copyStatus.textContent = (await copy(resultsText(Q, scores))) ? "Résultats copiés dans le presse-papiers." : "Copie impossible dans ce navigateur.";
+            copyStatus.textContent = (await copy(resultsText(Q, state, scores))) ? "Résultats copiés dans le presse-papiers." : "Copie impossible dans ce navigateur.";
           },
         }, "Copier les résultats"),
       ),
@@ -419,8 +442,10 @@ async function copy(text) {
   }
 }
 
-// Point d'entree direct, comme l'Atlas : …/#test demarre le questionnaire
-// sans passer par l'accueil -- sauf si une passation est en cours, qu'on
-// propose alors de reprendre plutot que de l'ecraser.
-if (window.location.hash === "#test" && !(state && Object.keys(state.responses).length)) start();
+// Point d'entree direct, comme l'Atlas : …/#test demarre la forme complete et
+// …/#court la forme courte, sans passer par l'accueil -- sauf si une
+// passation est en cours, qu'on propose alors de reprendre plutot que de
+// l'ecraser.
+const DIRECT = { "#test": "complet", "#court": "court" };
+if (DIRECT[window.location.hash] && !(state && Object.keys(state.responses).length)) start(DIRECT[window.location.hash]);
 else renderWelcome();
