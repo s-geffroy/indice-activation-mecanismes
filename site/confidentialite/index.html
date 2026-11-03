@@ -9,12 +9,13 @@
   <!-- connect-src : 'none' tant que la collecte n'est pas configuree ; sinon
        l'origine du service, et elle seule (un test le verifie). -->
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+        content="default-src 'self'; script-src 'self' https://www.ligne-de-crete.fr; style-src 'self'; font-src 'self' https://www.ligne-de-crete.fr; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
   <title>IAM V2.2 — Confidentialité</title>
   <script src="../assets/theme.js?v=2.2"></script>
   <link rel="preload" href="../fonts/IBMPlexSans-Regular-Latin1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="../assets/styles.css?v=2.2">
   <script type="module" src="../assets/privacy.js?v=2.2"></script>
+<script defer src="https://www.ligne-de-crete.fr/kit/v1/ldc-kit.js"></script>
 </head>
 <body>
   <a class="skip" href="#app">Aller au contenu</a>
