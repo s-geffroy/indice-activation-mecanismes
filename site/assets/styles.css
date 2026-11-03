@@ -143,6 +143,11 @@ main:focus, h1:focus, h2:focus { outline: none; }
 
 /* --- En-tete et pied ------------------------------------------------------ */
 
+/* Place du bandeau de ligne de crete, reservee jusqu'a ce que le kit le
+   remplisse : sans elle, il arrive apres le premier affichage et fait
+   descendre la page de sa hauteur (33 px, fixee par /kit/v1/). */
+ldc-bandeau:not(:defined) { display: block; height: 33px; }
+
 .top {
   position: sticky; top: 0; z-index: 3;
   background: color-mix(in srgb, var(--fond) 92%, transparent);
