@@ -616,11 +616,16 @@ function siteFiles(dir = SITE) {
 }
 
 // Seul assets/collect.js peut parler au reseau (collecte du pilote, sur clic
-// de la personne) ; aucun fichier ne charge de ressource distante.
-test("le site ne parle au reseau que par collect.js, et ne charge rien de distant", () => {
+// de la personne) ; rien de distant n'est charge, sauf le kit de ligne de
+// crete (bandeau et pied communs aux travaux), cite dans la notice.
+const KIT = '<script defer src="https://www.ligne-de-crete.fr/kit/v1/ldc-kit.js"></script>';
+const KIT_ORIGINE = " https://www.ligne-de-crete.fr";
+
+test("le site ne parle au reseau que par collect.js, et ne charge que le kit de distant", () => {
   const network = join(SITE, "assets/collect.js");
   for (const f of siteFiles().filter((f) => /\.(js|html|css)$/.test(f))) {
-    const src = readFileSync(f, "utf8");
+    const src = readFileSync(f, "utf8").replaceAll(KIT, "")
+      .replace(/(script-src|font-src)[^;"]*/g, (d) => d.replaceAll(KIT_ORIGINE, ""));
     for (const bad of ["XMLHttpRequest", "sendBeacon", "WebSocket", "EventSource", "document.cookie", "http://", "https://"]) {
       assert.ok(!src.includes(bad), `${f} contient ${bad}`);
     }

@@ -80,7 +80,7 @@ Traefik (HTTPS) ──► collect  (src/collect/server.py, port interne 8080)
 - **Notice (art. 13)** : `site/confidentialite/index.html`. Elle couvre :
   - le responsable et son contact ;
   - la finalité, la base légale et les données ;
-  - les destinataires et l’hébergement, y compris GitHub Pages et les adresses IP de visite ;
+  - les destinataires et l’hébergement, y compris GitHub Pages, le kit servi par www.ligne-de-crete.fr et les adresses IP de visite ;
   - les durées de conservation ;
   - les droits, l’article 11 et la réclamation auprès de la CNIL ;
   - l’absence de décision automatisée.
@@ -112,7 +112,7 @@ Traefik (HTTPS) ──► collect  (src/collect/server.py, port interne 8080)
 | Personnes concernées | Adultes volontaires ayant une expérience professionnelle |
 | Données | Réponses, forme, ordre présenté, début à la minute, durée, date de réception, version du consentement, empreinte du code |
 | Destinataires | Le responsable seul ; publication agrégée |
-| Sous-traitants | Hébergeur du VPS [nom, pays] ; GitHub Pages pour la page statique (sans accès aux réponses) |
+| Sous-traitants | Hébergeur du VPS [nom, pays] ; GitHub Pages pour la page statique, www.ligne-de-crete.fr pour le bandeau commun (sans accès aux réponses) |
 | Transferts hors UE | Aucun pour les réponses ; visites de la page servies par GitHub (États-Unis) |
 | Durée | Fin de collecte + 3 ans |
 | Sécurité | Voir la section Sécurité |

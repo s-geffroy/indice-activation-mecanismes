@@ -41,7 +41,7 @@ La V2.1 n'est plus versionnee : elle reste dans l'historique (tag `v2.1`).
 
 | fichier | role |
 |---|---|
-| `site/index.html` | page unique ; CSP stricte, aucune ressource distante |
+| `site/index.html` | page unique ; CSP stricte, seule ressource distante : le kit ligne de crete |
 | `site/assets/core.js` | logique sans DOM : session, scoring, sauvegarde, export |
 | `site/assets/app.js` | affichage et navigation, delegue tout a `core.js` |
 | `site/assets/dom.js` | petits outils DOM partages |
