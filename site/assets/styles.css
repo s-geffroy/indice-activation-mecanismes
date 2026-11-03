@@ -187,6 +187,15 @@ main { flex: 1; padding-block: clamp(1.5rem, 5vw, 3rem) 3rem; }
 }
 .foot p { margin: .25rem 0; }
 
+/* Tant que app.js n'a rien rendu dans <main>, le pied (et celui du kit de
+   ligne de crete) s'afficherait en haut de l'ecran, puis le contenu le
+   repousserait hors champ : un decalage de mise en page a chaque visite.
+   On le masque jusque-la. Sans JavaScript, la regle ne s'applique pas et le
+   pied reste visible sous le message <noscript>. */
+@media (scripting: enabled) {
+  #app:not(:has(> :not(noscript))) ~ :is(.foot, ldc-pied) { display: none; }
+}
+
 /* --- Textes --------------------------------------------------------------- */
 
 .eyebrow {
